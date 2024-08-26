@@ -1691,7 +1691,7 @@ TEST_F(UserSettingTest, PersistentstoreIsDeactivatedErrorCase)
     {
         TEST_LOG("File[/tmp/secure/persistent/rdkservicestore] successfully deleted");
     }
-    leep(50);
+    sleep(50);
     if (CreateUserSettingInterfaceObjectUsingComRPCConnection() != Core::ERROR_NONE)
     {
         TEST_LOG("Invalid Client_UserSettings");
