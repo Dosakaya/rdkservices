@@ -1680,7 +1680,7 @@ TEST_F(UserSettingTest, PersistentstoreIsDeactivatedErrorCase)
 
     status = DeactivateService("org.rdk.PersistentStore");
     EXPECT_EQ(Core::ERROR_NONE, status);
-    sleep(5);
+    sleep(10);
 
     int file_status = remove("/tmp/secure/persistent/rdkservicestore");
     // Check if the file has been successfully removed
