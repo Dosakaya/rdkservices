@@ -1680,7 +1680,6 @@ TEST_F(UserSettingTest, PersistentstoreIsDeactivatedErrorCase)
 
     status = DeactivateService("org.rdk.PersistentStore");
     EXPECT_EQ(Core::ERROR_NONE, status);
-    sleep(10);
 
     int file_status = remove("/tmp/secure/persistent/rdkservicestore");
     // Check if the file has been successfully removed
@@ -1692,7 +1691,7 @@ TEST_F(UserSettingTest, PersistentstoreIsDeactivatedErrorCase)
     {
         TEST_LOG("File[/tmp/secure/persistent/rdkservicestore] successfully deleted");
     }
-
+    leep(50);
     if (CreateUserSettingInterfaceObjectUsingComRPCConnection() != Core::ERROR_NONE)
     {
         TEST_LOG("Invalid Client_UserSettings");
