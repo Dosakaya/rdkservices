@@ -73,7 +73,7 @@ jobs:
         with:
           repository: rdkcentral/ThunderTools
           path: ThunderTools
-          ref: ${{env.THUNDER_REF}}
+          ref: R4.4.3
 
       - name: Build ThunderTools
         if: steps.cache.outputs.cache-hit != 'true'
@@ -226,6 +226,7 @@ jobs:
           -fprofile-arcs
           -ftest-coverage
           -DUSE_THUNDER_R4=ON
+          -DSUPPORT_CAMEL_CASE_JSON_APIS=ON
           -DENABLE_UPPERCASE_JSON_API_NAMES=ON
           -DTHUNDER_VERSION=4
           -DTHUNDER_VERSION_MAJOR=4
