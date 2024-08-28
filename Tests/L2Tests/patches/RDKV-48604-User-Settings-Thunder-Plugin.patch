@@ -35,7 +35,7 @@ index 0000000..7c63d45
 +
 +namespace WPEFramework {
 +namespace Exchange {
-+  // @json
++  // @json @text:keep
 +  struct EXTERNAL IUserSettings : virtual public Core::IUnknown {
 +  enum { ID = ID_USER_SETTINGS };
 +
