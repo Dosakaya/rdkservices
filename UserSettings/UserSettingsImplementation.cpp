@@ -48,24 +48,24 @@ const std::map<string, string> UserSettingsImplementation::usersettingsDefaultMa
                                                                  {USERSETTINGS_VOICE_GUIDANCE_RATE_KEY, "1"},
                                                                  {USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY, "false"}};
 
-const std::map<SettingsKey, string> UserSettingsInspectorImplementation::_userSettingsInspectorMap = {
-                                         {SettingsKey::PREFERRED_AUDIO_LANGUAGES, "preferredAudioLanguages"},
-                                         {SettingsKey::AUDIO_DESCRIPTION, "audioDescription"},
-                                         {SettingsKey::CAPTIONS, "captions"},
-                                         {SettingsKey::PREFERRED_CAPTIONS_LANGUAGES, "preferredCaptionsLanguages"},
-                                         {SettingsKey::PREFERRED_CLOSED_CAPTION_SERVICE, "preferredClosedCaptionsService"},
-                                         {SettingsKey::PRESENTATION_LANGUAGE, "presentationLanguage"},
-                                         {SettingsKey::HIGH_CONTRAST, "highContrast"},
-                                         {SettingsKey::PIN_CONTROL, "pinControl"},
-                                         {SettingsKey::VIEWING_RESTRICTIONS, "viewingRestrictions"},
-                                         {SettingsKey::VIEWING_RESTRICTIONS_WINDOW, "viewingRestrictionsWindow"},
-                                         {SettingsKey::LIVE_WATERSHED, "liveWaterShed"},
-                                         {SettingsKey::PLAYBACK_WATERSHED, "playbackWaterShed"},
-                                         {SettingsKey::BLOCK_NOT_RATED_CONTENT, "blockNotRatedContent"},
-                                         {SettingsKey::PIN_ON_PURCHASE, "pinOnPurchase"},
-                                         {SettingsKey::VOICE_GUIDANCE, "voiceGuidance"},
-                                         {SettingsKey::VOICE_GUIDANCE_RATE, "voiceGuidanceRate"},
-                                         {SettingsKey::VOICE_GUIDANCE_HINTS, "voiceGuidanceHints"}};
+const std::map<Exchange::IUserSettingsInspector::SettingsKey, string> UserSettingsInspectorImplementation::_userSettingsInspectorMap = {
+                                         {Exchange::IUserSettingsInspector::SettingsKey::PREFERRED_AUDIO_LANGUAGES, "preferredAudioLanguages"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::AUDIO_DESCRIPTION, "audioDescription"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::CAPTIONS, "captions"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::PREFERRED_CAPTIONS_LANGUAGES, "preferredCaptionsLanguages"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::PREFERRED_CLOSED_CAPTION_SERVICE, "preferredClosedCaptionsService"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::PRESENTATION_LANGUAGE, "presentationLanguage"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::HIGH_CONTRAST, "highContrast"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::PIN_CONTROL, "pinControl"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::VIEWING_RESTRICTIONS, "viewingRestrictions"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::VIEWING_RESTRICTIONS_WINDOW, "viewingRestrictionsWindow"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::LIVE_WATERSHED, "liveWaterShed"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::PLAYBACK_WATERSHED, "playbackWaterShed"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::BLOCK_NOT_RATED_CONTENT, "blockNotRatedContent"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::PIN_ON_PURCHASE, "pinOnPurchase"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::VOICE_GUIDANCE, "voiceGuidance"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::VOICE_GUIDANCE_RATE, "voiceGuidanceRate"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::VOICE_GUIDANCE_HINTS, "voiceGuidanceHints"}};
 
 SERVICE_REGISTRATION(UserSettingsImplementation, 1, 0);
 
@@ -1036,7 +1036,6 @@ UserSettingsInspectorImplementation::UserSettingsInspectorImplementation()
 , _remotStoreObject(nullptr)
 {
     LOGINFO("Create UserSettingsImplementation Instance");
-    UserSettingsImplementation::instance(this);
 }
 
 uint32_t UserSettingsInspectorImplementation::Configure(PluginHost::IShell* service)
@@ -1050,14 +1049,6 @@ uint32_t UserSettingsInspectorImplementation::Configure(PluginHost::IShell* serv
         result = Core::ERROR_NONE;
 
         _remotStoreObject = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::IStore2>("org.rdk.PersistentStore");
-        if (_remotStoreObject != nullptr)
-        {
-            registerEventHandlers();
-        }
-        else
-        {
-            LOGERR("_remotStoreObject is null \n");
-        }
     }
     else
     {
@@ -1065,21 +1056,6 @@ uint32_t UserSettingsInspectorImplementation::Configure(PluginHost::IShell* serv
     }
 
     return result;
-}
-
-UserSettingsInspectorImplementation* UserSettingsInspectorImplementation::instance(UserSettingsInspectorImplementation *UserSettingsImpl)
-{
-   static UserSettingsInspectorImplementation *UserSettingsImpl_instance = nullptr;
-
-   if (UserSettingsImpl != nullptr)
-   {
-      UserSettingsImpl_instance = UserSettingsImpl;
-   }
-   else
-   {
-      LOGERR("UserSettingsImpl is null \n");
-   }
-   return(UserSettingsImpl_instance);
 }
 
 UserSettingsInspectorImplementation::~UserSettingsInspectorImplementation()
@@ -1138,7 +1114,7 @@ Core::hresult UserSettingsInspectorImplementation::GetMigrationStates(IUserSetti
 
     _adminLock.Lock();
 
-    Exchange::IUserSettingsInspector::SettingsMigrationState SettingMigrationState = {0};
+    Exchange::IUserSettingsInspector::SettingsMigrationState SettingMigrationState = {};
     std::list<Exchange::IUserSettingsInspector::SettingsMigrationState> SettingMigrationStateList;
     if (nullptr != _remotStoreObject)
     {

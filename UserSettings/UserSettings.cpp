@@ -73,7 +73,7 @@ namespace WPEFramework
         _service->AddRef();
         _service->Register(&_usersettingsNotification);
         _userSetting = _service->Root<Exchange::IUserSettings>(_connectionId, 5000, _T("UserSettingsImplementation"));
-        _userSettingsInspector = _service->Root<Exchange::IUserSettingsInspector>(_connectionId, 5000, _T("UserSettingsImplementation"));
+        _userSettingsInspector = _service->Root<Exchange::IUserSettingsInspector>(_connectionId, 5000, _T("UserSettingsInspectorImplementation"));
         if(nullptr != _userSetting)
         {
             configure = _userSetting->QueryInterface<Exchange::IConfiguration>();
@@ -118,7 +118,7 @@ namespace WPEFramework
             }
 
             // Invoking Plugin API register to wpeframework
-            Exchange::JUserSettings::Register(*this, _userSettingsInspector);
+            Exchange::JUserSettingsInspector::Register(*this, _userSettingsInspector);
         }
         else
         {

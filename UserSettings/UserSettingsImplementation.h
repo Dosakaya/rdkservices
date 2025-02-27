@@ -240,11 +240,12 @@ namespace Plugin {
                                        public Exchange::IConfiguration {
 
     public:
+        static const std::map<SettingsKey, string> _userSettingsInspectorMap;
+
+    public:
         // We do not allow this plugin to be copied !!
         UserSettingsInspectorImplementation();
         ~UserSettingsInspectorImplementation() override;
-
-        static UserSettingsInspectorImplementation* instance(UserSettingsInspectorImplementation *UserSettingsInspectorImpl = nullptr);
 
         // We do not allow this plugin to be copied !!
         UserSettingsInspectorImplementation(const UserSettingsInspectorImplementation&) = delete;
@@ -266,8 +267,6 @@ namespace Plugin {
         mutable Core::CriticalSection _adminLock;
         Exchange::IStore2* _remotStoreObject;
         PluginHost::IShell* _service;
-        const std::map<SettingsKey, string> _userSettingsInspectorMap;
-
     };
 
 
