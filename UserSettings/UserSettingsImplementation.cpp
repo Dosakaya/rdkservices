@@ -1076,28 +1076,28 @@ Core::hresult UserSettingsInspectorImplementation::GetMigrationState(const Setti
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
     uint32_t ttl = 0;
-    std::string str_key = _userSettingsInspectorMap[key];
+    std::string strkey = _userSettingsInspectorMap.at(key);
 
     _adminLock.Lock();
 
-    LOGINFO("Key[%d] str_key[%s]", key, str_key.c_str());
-    if (nullptr != _remotStoreObject)
+    LOGINFO("key[%s]", strkey.c_str());
+    if (nullptr != _remotStoreObject && !strkey.empty())
     {
-        status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, str_key, value, ttl);
-        LOGINFO("Key[%d] value[%s] status[%d]", key, value.c_str(), status);
+        status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, strkey, value, ttl);
+        LOGINFO("Key[%s] value[%s] status[%d]", strkey.c_str(), value.c_str(), status);
         if(Core::ERROR_NOT_EXIST == status)
         {
             requiresMigration = true;
             status = Core::ERROR_NONE;
         }
-        else if (Core::ERROR_NONE == status)
+        else
         {
             requiresMigration = false;
         }
     }
     else
     {
-        LOGERR("_remotStoreObject is null");
+        LOGERR("_remotStoreObject is null or strkey is empty");
     }
 
     _adminLock.Unlock();
@@ -1110,7 +1110,7 @@ Core::hresult UserSettingsInspectorImplementation::GetMigrationStates(IUserSetti
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
     uint32_t ttl = 0;
-    bool requiresMigration;
+    bool requiresMigration = false;
 
     _adminLock.Lock();
 
@@ -1120,21 +1120,21 @@ Core::hresult UserSettingsInspectorImplementation::GetMigrationStates(IUserSetti
     {
         for (auto uimap = _userSettingsInspectorMap.begin(); uimap != _userSettingsInspectorMap.end(); uimap++)
         {
-            LOGINFO("uimap key[%d] uimap str_key[%s]", uimap->first, (uimap->second).c_str());
+            LOGINFO("key[%s]", (uimap->second).c_str());
             status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, uimap->second, value, ttl);
-            LOGINFO("str_key[%d] value[%s] status[%d]", (uimap->second).c_str(), value.c_str(), status);
+            LOGINFO("key[%s] value[%s] status[%d]", (uimap->second).c_str(), value.c_str(), status);
             if(Core::ERROR_NOT_EXIST == status)
             {
                 requiresMigration = true;
                 status = Core::ERROR_NONE;
             }
-            else if (Core::ERROR_NONE == status)
+            else
             {
                 requiresMigration = false;
             }
             SettingMigrationState.key = uimap->first;
             SettingMigrationState.requiresMigration = requiresMigration;
-            SettingMigrationStateList.emplace_back((SettingMigrationState);
+            SettingMigrationStateList.emplace_back(SettingMigrationState);
         }
         states = (Core::Service<RPC::IteratorType<Exchange::IUserSettingsInspector::IUserSettingsMigrationStateIterator>>::Create<Exchange::IUserSettingsInspector::IUserSettingsMigrationStateIterator>(SettingMigrationStateList));
     }
@@ -1146,10 +1146,7 @@ Core::hresult UserSettingsInspectorImplementation::GetMigrationStates(IUserSetti
     _adminLock.Unlock();
 
     return status;
-
 }
-
-
 
 } // namespace Plugin
 } // namespace WPEFramework
