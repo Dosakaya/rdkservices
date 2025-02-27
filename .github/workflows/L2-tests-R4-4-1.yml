@@ -144,8 +144,8 @@ jobs:
               patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-RDK-45037-Secure-Storage-Thunder-Plugin.patch
               patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/RDKV-48604-User-Settings-Thunder-Plugin.patch
               patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/Use_Legact_Alt_In_ThunderInterfaces_Based_On_ThunderTools_R4.4.3.patch
-              patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/RDK-51362-System-Mode-Thunder-Plugin.patch
-              patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-Add-IAnalytics-interface-R4.4.patch
+              #:patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/RDK-51362-System-Mode-Thunder-Plugin.patch
+              #patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-Add-IAnalytics-interface-R4.4.patch
               cd ..
 
       - name: Build ThunderInterfaces
@@ -160,6 +160,14 @@ jobs:
           cmake --build build/ThunderInterfaces -j8
           &&
           cmake --install build/ThunderInterfaces
+          &&
+          cat /home/nadosakayala/usersettings/rdkservices/install/usr/include/WPEFramework/interfaces/json/JUserSettings.h
+          &&
+          cp /home/nadosakayala/usersettings/rdkservices/build/ThunderInterfaces/interfaces/generated/ProxyStubs_UserSettings.cpp ${{github.workspace}}/rdkservices/
+          &&
+          cp /home/nadosakayala/usersettings/rdkservices/install/usr/include/WPEFramework/interfaces/json/JsonData_UserSettings.h ${{github.workspace}}/rdkservices/
+          &&
+          cp /home/nadosakayala/usersettings/rdkservices/install/usr/include/WPEFramework/interfaces/json/JUserSettings.h ${{github.workspace}}/rdkservices/
 
       - name: Generate external headers
         # Empty headers to mute errors

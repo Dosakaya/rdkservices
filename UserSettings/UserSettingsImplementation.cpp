@@ -48,6 +48,25 @@ const std::map<string, string> UserSettingsImplementation::usersettingsDefaultMa
                                                                  {USERSETTINGS_VOICE_GUIDANCE_RATE_KEY, "1"},
                                                                  {USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY, "false"}};
 
+const std::map<SettingsKey, string> UserSettingsInspectorImplementation::_userSettingsInspectorMap = {
+                                         {SettingsKey::PREFERRED_AUDIO_LANGUAGES, "preferredAudioLanguages"},
+                                         {SettingsKey::AUDIO_DESCRIPTION, "audioDescription"},
+                                         {SettingsKey::CAPTIONS, "captions"},
+                                         {SettingsKey::PREFERRED_CAPTIONS_LANGUAGES, "preferredCaptionsLanguages"},
+                                         {SettingsKey::PREFERRED_CLOSED_CAPTION_SERVICE, "preferredClosedCaptionsService"},
+                                         {SettingsKey::PRESENTATION_LANGUAGE, "presentationLanguage"},
+                                         {SettingsKey::HIGH_CONTRAST, "highContrast"},
+                                         {SettingsKey::PIN_CONTROL, "pinControl"},
+                                         {SettingsKey::VIEWING_RESTRICTIONS, "viewingRestrictions"},
+                                         {SettingsKey::VIEWING_RESTRICTIONS_WINDOW, "viewingRestrictionsWindow"},
+                                         {SettingsKey::LIVE_WATERSHED, "liveWaterShed"},
+                                         {SettingsKey::PLAYBACK_WATERSHED, "playbackWaterShed"},
+                                         {SettingsKey::BLOCK_NOT_RATED_CONTENT, "blockNotRatedContent"},
+                                         {SettingsKey::PIN_ON_PURCHASE, "pinOnPurchase"},
+                                         {SettingsKey::VOICE_GUIDANCE, "voiceGuidance"},
+                                         {SettingsKey::VOICE_GUIDANCE_RATE, "voiceGuidanceRate"},
+                                         {SettingsKey::VOICE_GUIDANCE_HINTS, "voiceGuidanceHints"}};
+
 SERVICE_REGISTRATION(UserSettingsImplementation, 1, 0);
 
 UserSettingsImplementation::UserSettingsImplementation()
@@ -439,6 +458,7 @@ uint32_t UserSettingsImplementation::SetUserSettingsValue(const string& key, con
     uint32_t status = Core::ERROR_GENERAL;
     _adminLock.Lock();
 
+    LOGINFO("Key[%s] value[%s]", key.c_str(), value.c_str());
     if (nullptr != _remotStoreObject)
     {
         status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, key, value, 0);
@@ -457,7 +477,7 @@ uint32_t UserSettingsImplementation::GetUserSettingsValue(const string& key, str
     uint32_t ttl = 0;
     _adminLock.Lock();
 
-    LOGINFO("Key[%s] value[%s]", key.c_str(), value.c_str());
+    LOGINFO("Key[%s]", key.c_str());
     if (nullptr != _remotStoreObject)
     {
         status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, key, value, ttl);
@@ -1010,6 +1030,150 @@ uint32_t UserSettingsImplementation::GetVoiceGuidanceHints(bool &hints) const
     }
     return status;
 }
+
+UserSettingsInspectorImplementation::UserSettingsInspectorImplementation()
+: _adminLock()
+, _remotStoreObject(nullptr)
+{
+    LOGINFO("Create UserSettingsImplementation Instance");
+    UserSettingsImplementation::instance(this);
+}
+
+uint32_t UserSettingsInspectorImplementation::Configure(PluginHost::IShell* service)
+{
+    uint32_t result = Core::ERROR_GENERAL;
+
+    if (service != nullptr)
+    {
+        _service = service;
+        _service->AddRef();
+        result = Core::ERROR_NONE;
+
+        _remotStoreObject = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::IStore2>("org.rdk.PersistentStore");
+        if (_remotStoreObject != nullptr)
+        {
+            registerEventHandlers();
+        }
+        else
+        {
+            LOGERR("_remotStoreObject is null \n");
+        }
+    }
+    else
+    {
+        LOGERR("service is null \n");
+    }
+
+    return result;
+}
+
+UserSettingsInspectorImplementation* UserSettingsInspectorImplementation::instance(UserSettingsInspectorImplementation *UserSettingsImpl)
+{
+   static UserSettingsInspectorImplementation *UserSettingsImpl_instance = nullptr;
+
+   if (UserSettingsImpl != nullptr)
+   {
+      UserSettingsImpl_instance = UserSettingsImpl;
+   }
+   else
+   {
+      LOGERR("UserSettingsImpl is null \n");
+   }
+   return(UserSettingsImpl_instance);
+}
+
+UserSettingsInspectorImplementation::~UserSettingsInspectorImplementation()
+{
+    if(_remotStoreObject)
+    {
+        _remotStoreObject->Release();
+    }
+    if (_service != nullptr)
+    {
+       _service->Release();
+       _service = nullptr;
+    }
+}
+
+Core::hresult UserSettingsInspectorImplementation::GetMigrationState(const SettingsKey key, bool &requiresMigration) const
+{
+    uint32_t status = Core::ERROR_GENERAL;
+    std::string value = "";
+    uint32_t ttl = 0;
+    std::string str_key = _userSettingsInspectorMap[key];
+
+    _adminLock.Lock();
+
+    LOGINFO("Key[%d] str_key[%s]", key, str_key.c_str());
+    if (nullptr != _remotStoreObject)
+    {
+        status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, str_key, value, ttl);
+        LOGINFO("Key[%d] value[%s] status[%d]", key, value.c_str(), status);
+        if(Core::ERROR_NOT_EXIST == status)
+        {
+            requiresMigration = true;
+            status = Core::ERROR_NONE;
+        }
+        else if (Core::ERROR_NONE == status)
+        {
+            requiresMigration = false;
+        }
+    }
+    else
+    {
+        LOGERR("_remotStoreObject is null");
+    }
+
+    _adminLock.Unlock();
+
+    return status;
+
+}
+Core::hresult UserSettingsInspectorImplementation::GetMigrationStates(IUserSettingsMigrationStateIterator *&states) const
+{
+    uint32_t status = Core::ERROR_GENERAL;
+    std::string value = "";
+    uint32_t ttl = 0;
+    bool requiresMigration;
+
+    _adminLock.Lock();
+
+    Exchange::IUserSettingsInspector::SettingsMigrationState SettingMigrationState = {0};
+    std::list<Exchange::IUserSettingsInspector::SettingsMigrationState> SettingMigrationStateList;
+    if (nullptr != _remotStoreObject)
+    {
+        for (auto uimap = _userSettingsInspectorMap.begin(); uimap != _userSettingsInspectorMap.end(); uimap++)
+        {
+            LOGINFO("uimap key[%d] uimap str_key[%s]", uimap->first, (uimap->second).c_str());
+            status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, uimap->second, value, ttl);
+            LOGINFO("str_key[%d] value[%s] status[%d]", (uimap->second).c_str(), value.c_str(), status);
+            if(Core::ERROR_NOT_EXIST == status)
+            {
+                requiresMigration = true;
+                status = Core::ERROR_NONE;
+            }
+            else if (Core::ERROR_NONE == status)
+            {
+                requiresMigration = false;
+            }
+            SettingMigrationState.key = uimap->first;
+            SettingMigrationState.requiresMigration = requiresMigration;
+            SettingMigrationStateList.emplace_back((SettingMigrationState);
+        }
+        states = (Core::Service<RPC::IteratorType<Exchange::IUserSettingsInspector::IUserSettingsMigrationStateIterator>>::Create<Exchange::IUserSettingsInspector::IUserSettingsMigrationStateIterator>(SettingMigrationStateList));
+    }
+    else
+    {
+        LOGERR("_remotStoreObject is null");
+    }
+
+    _adminLock.Unlock();
+
+    return status;
+
+}
+
+
 
 } // namespace Plugin
 } // namespace WPEFramework

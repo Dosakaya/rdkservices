@@ -193,6 +193,7 @@ namespace Plugin {
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
             INTERFACE_AGGREGATE(Exchange::IUserSettings, _userSetting)
+            INTERFACE_AGGREGATE(Exchange::IUserSettingsInspector, _userSettingsInspector)
             END_INTERFACE_MAP
 
             //  IPlugin methods
@@ -208,8 +209,10 @@ namespace Plugin {
             PluginHost::IShell* _service{};
             uint32_t _connectionId{};
             Exchange::IUserSettings* _userSetting{};
+            Exchange::IUserSettingsInspector* _userSettingsInspector{};
             Core::Sink<Notification> _usersettingsNotification;
             Exchange::IConfiguration* configure;
+			Exchange::IConfiguration* configure_userSettingsInspector;
     };
 
 } // namespace Plugin
