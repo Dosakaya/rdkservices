@@ -59,10 +59,12 @@
 namespace WPEFramework {
 namespace Plugin {
     class UserSettingsImplementation : public Exchange::IUserSettings,
+                                       public Exchange::IUserSettingsInspector,
                                        public Exchange::IConfiguration {
 
     public:
         static const std::map<string, string> usersettingsDefaultMap;
+        static const std::map<SettingsKey, string> _userSettingsInspectorMap;
 
     private:
         class Store2Notification : public Exchange::IStore2::INotification {
@@ -104,6 +106,7 @@ namespace Plugin {
 
         BEGIN_INTERFACE_MAP(UserSettingsImplementation)
         INTERFACE_ENTRY(Exchange::IUserSettings)
+        INTERFACE_ENTRY(Exchange::IUserSettingsInspector)
         INTERFACE_ENTRY(Exchange::IConfiguration)
         END_INTERFACE_MAP
 
@@ -208,6 +211,10 @@ namespace Plugin {
         uint32_t SetVoiceGuidanceHints(const bool hints) override;
         uint32_t GetVoiceGuidanceHints(bool &hints) const override;
 
+        // IUserSettingsInspector methods
+        Core::hresult GetMigrationState(const SettingsKey key, bool &requiresMigration) const override;
+        Core::hresult GetMigrationStates(IUserSettingsMigrationStateIterator *&states) const override;
+
         // IConfiguration methods
         uint32_t Configure(PluginHost::IShell* service) override;
 
@@ -235,41 +242,6 @@ namespace Plugin {
 
         friend class Job;
     };
-
-    class UserSettingsInspectorImplementation : public Exchange::IUserSettingsInspector,
-                                       public Exchange::IConfiguration {
-
-    public:
-        static const std::map<SettingsKey, string> _userSettingsInspectorMap;
-
-    public:
-        // We do not allow this plugin to be copied !!
-        UserSettingsInspectorImplementation();
-        ~UserSettingsInspectorImplementation() override;
-
-        // We do not allow this plugin to be copied !!
-        UserSettingsInspectorImplementation(const UserSettingsInspectorImplementation&) = delete;
-        UserSettingsInspectorImplementation& operator=(const UserSettingsInspectorImplementation&) = delete;
-
-        BEGIN_INTERFACE_MAP(UserSettingsInspectorImplementation)
-        INTERFACE_ENTRY(Exchange::IUserSettingsInspector)
-        INTERFACE_ENTRY(Exchange::IConfiguration)
-        END_INTERFACE_MAP
-
-    public:
-        Core::hresult GetMigrationState(const SettingsKey key, bool &requiresMigration/* @out */) const override;
-        Core::hresult GetMigrationStates(IUserSettingsMigrationStateIterator *&states /* @out */) const override;
-
-        // IConfiguration methods
-        uint32_t Configure(PluginHost::IShell* service) override;
-
-    private:
-        mutable Core::CriticalSection _adminLock;
-        Exchange::IStore2* _remotStoreObject;
-        PluginHost::IShell* _service;
-    };
-
-
 
 } // namespace Plugin
 } // namespace WPEFramework

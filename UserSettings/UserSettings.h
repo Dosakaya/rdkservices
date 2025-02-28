@@ -22,8 +22,8 @@
 #include "Module.h"
 #include <interfaces/json/JsonData_UserSettings.h>
 #include <interfaces/json/JUserSettings.h>
-#include <interfaces/json/JsonData_UserSettingsInspector.h>
 #include <interfaces/json/JUserSettingsInspector.h>
+#include <interfaces/json/JsonData_UserSettingsInspector.h>
 #include <interfaces/IUserSettings.h>
 #include <interfaces/IConfiguration.h>
 #include "UtilsLogging.h"
@@ -214,7 +214,6 @@ namespace Plugin {
             Exchange::IUserSettingsInspector* _userSettingsInspector{};
             Core::Sink<Notification> _usersettingsNotification;
             Exchange::IConfiguration* configure;
-            Exchange::IConfiguration* configure_userSettingsInspector;
     };
 
 } // namespace Plugin

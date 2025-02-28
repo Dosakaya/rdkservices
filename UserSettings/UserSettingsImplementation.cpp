@@ -48,7 +48,7 @@ const std::map<string, string> UserSettingsImplementation::usersettingsDefaultMa
                                                                  {USERSETTINGS_VOICE_GUIDANCE_RATE_KEY, "1"},
                                                                  {USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY, "false"}};
 
-const std::map<Exchange::IUserSettingsInspector::SettingsKey, string> UserSettingsInspectorImplementation::_userSettingsInspectorMap = {
+const std::map<Exchange::IUserSettingsInspector::SettingsKey, string> UserSettingsImplementation::_userSettingsInspectorMap = {
                                          {Exchange::IUserSettingsInspector::SettingsKey::PREFERRED_AUDIO_LANGUAGES, "preferredAudioLanguages"},
                                          {Exchange::IUserSettingsInspector::SettingsKey::AUDIO_DESCRIPTION, "audioDescription"},
                                          {Exchange::IUserSettingsInspector::SettingsKey::CAPTIONS, "captions"},
@@ -1031,47 +1031,7 @@ uint32_t UserSettingsImplementation::GetVoiceGuidanceHints(bool &hints) const
     return status;
 }
 
-UserSettingsInspectorImplementation::UserSettingsInspectorImplementation()
-: _adminLock()
-, _remotStoreObject(nullptr)
-{
-    LOGINFO("Create UserSettingsImplementation Instance");
-}
-
-uint32_t UserSettingsInspectorImplementation::Configure(PluginHost::IShell* service)
-{
-    uint32_t result = Core::ERROR_GENERAL;
-
-    if (service != nullptr)
-    {
-        _service = service;
-        _service->AddRef();
-        result = Core::ERROR_NONE;
-
-        _remotStoreObject = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::IStore2>("org.rdk.PersistentStore");
-    }
-    else
-    {
-        LOGERR("service is null \n");
-    }
-
-    return result;
-}
-
-UserSettingsInspectorImplementation::~UserSettingsInspectorImplementation()
-{
-    if(_remotStoreObject)
-    {
-        _remotStoreObject->Release();
-    }
-    if (_service != nullptr)
-    {
-       _service->Release();
-       _service = nullptr;
-    }
-}
-
-Core::hresult UserSettingsInspectorImplementation::GetMigrationState(const SettingsKey key, bool &requiresMigration) const
+Core::hresult UserSettingsImplementation::GetMigrationState(const SettingsKey key, bool &requiresMigration) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
@@ -1105,7 +1065,7 @@ Core::hresult UserSettingsInspectorImplementation::GetMigrationState(const Setti
     return status;
 
 }
-Core::hresult UserSettingsInspectorImplementation::GetMigrationStates(IUserSettingsMigrationStateIterator *&states) const
+Core::hresult UserSettingsImplementation::GetMigrationStates(IUserSettingsMigrationStateIterator *&states) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
